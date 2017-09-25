@@ -11,16 +11,18 @@ Where aid in  (Select aid
 
 
 
- #2. 
+ # 2. cant figure out the ordr
+ 
  select distinct pid 
  from Orders 
- Order By pid DESC
 where aid in (
+      
       select aid from Orders
       where cid in
       	    (
 		select cid from Customers
-		where city = 'Beijing'));
+		where city = 'Beijing'
+           order by pid desc ));
 
 #3. works!!!!
 
