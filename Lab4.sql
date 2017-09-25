@@ -4,7 +4,7 @@
 #1. works!!!!!!!!!
 		
 Select distinct city
-From agents
+from agents
 Where aid in  (Select aid
 	      From orders
 	      Where cid = 'c006');
@@ -12,7 +12,8 @@ Where aid in  (Select aid
 
 
  #2. 
- select distinct pid from Orders 
+ select distinct pid 
+ from Orders 
  Order By pid DESC
 where aid in (
       select aid from Orders
@@ -23,13 +24,15 @@ where aid in (
 
 #3. works!!!!
 
-Select distinct cid, name from Customers
+Select distinct cid, name 
+from Customers
 where cid not in (
       select distinct cid from orders
       where aid = 'a03');
 
 #4.  works!!
-select distinct cid from Customers
+select distinct cid 
+from Customers
 where cid in (
       select cid from Orders
       where pid = 'p01' or pid = 'p07');
@@ -45,7 +48,8 @@ where cid not in (
 
 #6. works!!! 	
 
-select name, discountPct from Customers
+select name, discountPct 
+from Customers
 where cid in (
       select cid from Orders
       where aid in (
