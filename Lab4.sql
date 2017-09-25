@@ -1,3 +1,6 @@
+
+#Joe Tursi
+
 #1. works!!!!!!!!!
 		
 Select distinct city
