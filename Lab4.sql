@@ -13,6 +13,7 @@ Where aid in  (Select aid
 
  #2. 
  select distinct pid from Orders 
+ Order By pid DESC
 where aid in (
       select aid from Orders
       where cid in
@@ -36,6 +37,7 @@ where cid in (
 #5. 
 
 select distinct pid from Orders
+Order by pid DESC
 where cid in (
       select cid from Orders
       where  aid not in = 'a03' or aid = 'a02');
