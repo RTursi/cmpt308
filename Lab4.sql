@@ -43,7 +43,9 @@ select distinct pid
 from Orders
 where cid not in (
       select cid from Orders
-      where  aid = 'a03' or aid = 'a02');
+      where  aid = 'a03' or aid = 'a02'
+	  ORDER by pid desc
+);
      
 
 #6. works!!! 	
