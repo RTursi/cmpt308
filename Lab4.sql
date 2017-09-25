@@ -36,11 +36,12 @@ where cid in (
 
 #5. 
 
-select distinct pid from Orders
-Order by pid DESC
-where cid in (
+select distinct pid 
+from Orders
+where cid not in (
       select cid from Orders
-      where  aid not in = 'a03' or aid = 'a02');
+      where  aid = 'a03' or aid = 'a02');
+     
 
 #6. works!!! 	
 
