@@ -14,15 +14,13 @@ drop table if exists directorof;
 
 -- Actors --
 CREATE TABLE actors (
-  pid            int not null references people(pid),
-  aid            int not null,
+  pid            int not null,
   haircolor      text,
   eyecolor       text,
   height_inches  int,
   weight	     int,
   favcolor       text,
   sgdavDate    	 date,
- primary key(aid)
 );    
 
 -- People --
@@ -39,12 +37,10 @@ CREATE TABLE people (
 
 -- Directors --
 CREATE TABLE directors (
-  did            int not null,
   pid            int not null references people(pid),
   filmschool     text,
   dganvdate      date,
   favlmaker      text,
- primary key(did)
 );
 
 -- Movies -- 
@@ -59,15 +55,15 @@ CREATE TABLE movies (
 );
 
 CREATE TABLE appearsin(
-aid				char(10) not null references actors(aid),
+pid				char(10) not null,
 MPAA_num		char(10) references movies(MPAA_num),
-primary key(aid, MPAA_num)
+primary key(pid, MPAA_num)
 );
 
 CREATE TABLE directorof(
-did 			char(10) not null references directors(did),
+pid 			char(10) not null,
 MPAA_num		char(10) not null refences movies(MPAA_num),
-primary key(did,MPAA_num)
+primary key(pid,MPAA_num)
 );
 
 -- Functional Depencencies --
@@ -82,16 +78,16 @@ primary key(did,MPAA_num)
 
 
 -- Directors
--- did -> pid, filmschool, dganvdate, favlmaker
+--pid> filmschool, dganvdate, favlmaker
 
 --Movies
 -- Mpaa_num->name, yearreleased, domboxoffice_usd, forboxoffice_usd, dvdsales_usd
 
 --appearsin
---aid, Mpaa_num ->
+--pid, Mpaa_num ->
 
 --directorof
---did, mpaa_num -->
+--pid, mpaa_num -->
 
 
 -----
