@@ -14,13 +14,15 @@ drop table if exists directorof;
 
 -- Actors --
 CREATE TABLE actors (
-  pid            int not null,
+  pid            int not null references people(pid),
+  aid            int not null,
   haircolor      text,
   eyecolor       text,
   height_inches  int,
   weight	     int,
   favcolor       text,
   sgdavDate    	 date,
+ primary key(aid)
 );    
 
 -- People --
@@ -37,10 +39,12 @@ CREATE TABLE people (
 
 -- Directors --
 CREATE TABLE directors (
+  did            int not null,
   pid            int not null references people(pid),
   filmschool     text,
   dganvdate      date,
   favlmaker      text,
+ primary key(did)
 );
 
 -- Movies -- 
@@ -55,15 +59,15 @@ CREATE TABLE movies (
 );
 
 CREATE TABLE appearsin(
-pid				char(10) not null,
+aid				char(10) not null references actors(aid),
 MPAA_num		char(10) references movies(MPAA_num),
-primary key(pid, MPAA_num)
+primary key(aid, MPAA_num)
 );
 
 CREATE TABLE directorof(
-pid 			char(10) not null,
+did 			char(10) not null references directors(did),
 MPAA_num		char(10) not null refences movies(MPAA_num),
-primary key(pid,MPAA_num)
+primary key(did,MPAA_num)
 );
 
 -- Functional Depencencies --
@@ -78,21 +82,21 @@ primary key(pid,MPAA_num)
 
 
 -- Directors
---pid> filmschool, dganvdate, favlmaker
+-- did -> pid, filmschool, dganvdate, favlmaker
 
 --Movies
 -- Mpaa_num->name, yearreleased, domboxoffice_usd, forboxoffice_usd, dvdsales_usd
 
 --appearsin
---pid, Mpaa_num ->
+--aid, Mpaa_num ->
 
 --directorof
---pid, mpaa_num -->
+--did, mpaa_num -->
 
 
 -----
 
--- #4 THE QUERY OF DOOM.............. AKA ROGER MOORE QUERY aka 67% chance this successfully runs..xD   
+-- #4 THE QUERY OF DOOM.............. AKA ROGER MOORE QUERY aka 67% chance this successfully runs  xD   
 select people
 from people,movies, directors, directorof
 where people.pid = directorof.did
@@ -103,11 +107,6 @@ and directors.did = directof.did in
 	where people.fname ="Roger"
 	and people.lname = "Moore"
 )
-
-
-
-
-
 
 
 
