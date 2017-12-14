@@ -220,7 +220,7 @@ TO P_USER;
 -- use this view to retrieve aggregated data for a transaction including total input, output and transaction fees
 -- \.
 -- Example:
-    -- SELECT * from view_transactionAggregated WHERE BitcoinTransactionId= 25
+/*    -- SELECT * from view_transactionAggregated WHERE BitcoinTransactionId= 25
 CREATE VIEW View_TransactionAggregated AS 
 SELECT 
 blockID	,		
@@ -243,7 +243,7 @@ FROM (
         BitcoinTransaction.TransactionLockTime,
         (   SELECT COUNT(1) 
             FROM TransactionInput
-            WHERE BitcoinTransaction.BitcoinTransactionId = TransactionInput.BitcoinTransactionId 
+            WHERE Transaction.TransactionId = TransactionInput.TransactionId 
         ) AS TransactionInputCount,
         (   SELECT SUM(TransactionOutput.OutputValueBtc)
             FROM TransactionInput 
@@ -266,7 +266,7 @@ FROM (
                 AND TransactionInput.TransactionInputId IS NULL
         ) AS TotalUnspentOutputBtc
     FROM BitcoinTransaction) AS TransactionAggregated
-
+*/
 --View_BlockAggregated
 -- Use this view retrieve aggregated data for a block including the 
 -- total input, output and transaction fees. 
@@ -309,7 +309,7 @@ INNER JOIN (
 -- ==========================================================================
 -- TRIGGERS -- 
 /* Every time we get a new input we link an existing output to it */
-CREATE OR REPLACE FUNCTION link_txs() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION link_transaction() RETURNS TRIGGER AS $$
 BEGIN
   UPDATE TransactionOutput
   SET InputHash = (SELECT TransactionHash FROM BitcoinTransaction WHERE BlockId = NEW.BitcoinTransactionId)
