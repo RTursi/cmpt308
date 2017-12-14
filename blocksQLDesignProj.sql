@@ -10,22 +10,15 @@
 -- https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_6):_The_Blockchain 
 -- https://blockgeeks.com/guides/what-is-hashing/
 -- ==========================================================================
-drop table if exists BlockchainFile;
+
 drop table if exists Branch;
 drop table if exists Block;
 drop table if exists BitcoinTransaction;
 drop table if exists TransactionInput;
 drop table if exists TransactionInputSource;
 drop table if exists TransactionOutput;
-drop table if exists BtcDbSettings;
 drop table if exists address;
--- TABLE: BlockchainFile
--- Contains information about the blockchain files 
 
-CREATE TABLE BlockchainFile (
-    BlockchainFileId                     INT PRIMARY KEY            NOT NULL,
-    BlockchainFileName                   VARCHAR (300)             NOT NULL
-);
 
 create table Branch(
 branchID        int,
@@ -85,30 +78,6 @@ CREATE TABLE TransactionInput (
 );
 
 
-
--- TABLE: TransactionInputSource
--- Contains information about the source of the Bitcoin transaction inputs.
--- This table contains links between transaction inputs and their
--- corresponding source outputs. 
--- a stage where data from this table is processed and a more direct link is 
--- calculated and saved in TransactionInput.SourceTransactionOutputId. Any 
--- queries where a join is required between an input and its corresponding 
--- output should use TransactionInput.SourceTransactionOutputId.
-CREATE TABLE TransactionInputSource (
-    TransactionInputId              BIGINT PRIMARY KEY              NOT NULL,
-
-    -- The hash of the transaction that contains the output that is the source
-    -- of this input.
-    -- Note: hash is in reverse order.
-    SourceTransactionHash           VARCHAR (32)                  NOT NULL,
-
-    -- The index of the output that will be consumed by this input.
-    -- The index is a zero based index in the list of outputs of the 
-    -- transaction that it belongs to.
-    SourceTransactionOutputIndex    INT                             NULL
-);
-
-
 -- TABLE: TransactionOutput
 -- Contains information about the Bitcoin transaction outputs.
 
@@ -123,12 +92,8 @@ CREATE TABLE TransactionOutput (
     InputIndex                      INT              
 );
 
--- TABLE: BtcDbSettings
---  Key-value pairs containing system data.
-CREATE TABLE BtcDbSettings (
-    PropertyName                    VARCHAR (32) PRIMARY KEY       NOT NULL,
-    PropertyValue                   VARCHAR (500)                  NOT NULL
-);
+
+
 
 create table address(
 addressID       bigint,
@@ -139,12 +104,6 @@ primary key(addressID)
 
 -- ==========================================================================
 -- iNSERT DATA IN THIS ISH
-
-insert into BlockchainFile(BlockchainFileId, BlockchainFileName)
-    values(2, 'AlanLabouseur');
-
-
-
 --
 insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
     values(100, 1, 1, 25, 1, 'ab', 'aabc', '2017-07-19', 'cb');
@@ -184,16 +143,7 @@ insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, Tra
 insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
     values(339, 29, 104, 'badc', 0, 0, 29);
 --
-insert into TransactionInputSource(TransactionInputId, SourceTransactionHash, SourceTransactionOutputIndex)
-    values(335, 'a', 400 );
-insert into TransactionInputSource(TransactionInputId, SourceTransactionHash, SourceTransactionOutputIndex)
-    values(336, 'a', 401);
-insert into TransactionInputSource(TransactionInputId, SourceTransactionHash, SourceTransactionOutputIndex)
-    values(337, 'a', 402);
-insert into TransactionInputSource(TransactionInputId, SourceTransactionHash, SourceTransactionOutputIndex)
-    values(338, 'a', 403);
-insert into TransactionInputSource(TransactionInputId, SourceTransactionHash, SourceTransactionOutputIndex)
-    values(339, 'a', 404);
+
 --
 insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
     values(7, 25, 0, 5.6, 'Complete', 0, 'a', 0);
@@ -207,8 +157,6 @@ insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputI
     values(11, 29, 0, 8.2, 'Complete', 0, 'a', 0);
 
 --
-insert into BtcDbSettings(PropertyName, PropertyValue)
-    values('ALAN', 'Backup');
 
 
 insert into branch(branchID, parentbranch, BlockTimestamp)
@@ -308,9 +256,9 @@ SELECT
     BlockAggregated.TotalOutputBtc,
    -- BlockAggregated.TransactionFeeBtc, This is = (TotalInputBtc - TotalOutputBtc) How do I like do that...
     BlockAggregated.TotalUnspentOutputBtc
-FROM Block
+From Block
 INNER JOIN (
-    SELECT 
+    selectT 
         Block.BlockId,
         SUM(1) AS TransactionCount,
         SUM(TransactionInputCount) AS TransactionInputCount,
@@ -319,41 +267,10 @@ INNER JOIN (
         SUM(TotalOutputBtc) AS TotalOutputBtc,
         --SUM(TransactionFeeBtc) AS TransactionFeeBtc,
         SUM(TotalUnspentOutputBtc) AS TotalUnspentOutputBtc
-    FROM Block
-    INNER JOIN View_TransactionAggregated ON Block.BlockId = View_TransactionAggregated.BlockId
+    from Block
+    INNER join View_TransactionAggregated ON Block.BlockId = View_TransactionAggregated.BlockId
     GROUP BY Block.BlockId
     ) AS BlockAggregated ON BlockAggregated.BlockId = Block.BlockId
-
--- VIEW View_BlockchainFileCounts
--- Use this view retrieve data about a blockchain file.
--- Example: 
---      SELECT * FROM View_BlockchainFileCounts WHERE BlockchainFileId = 100
-
-DROP VIEW IF EXISTS View_BlockchainFileCounts;
-CREATE VIEW View_BlockchainFileCounts AS 
-SELECT 
-    BlockchainFile.BlockchainFileId,
-    BlockchainFileName,
-    ( SELECT COUNT(1) FROM Block WHERE Block.BlockchainFileId = BlockchainFile.BlockchainFileId ) AS BlockCount,
-    ( SELECT COUNT(1) 
-      FROM BitcoinTransaction 
-      INNER JOIN Block ON Block.BlockId = BitcoinTransaction.BlockId
-      WHERE Block.BlockchainFileId = BlockchainFile.BlockchainFileId 
-    ) AS TransactionCount,
-    ( SELECT COUNT(1) 
-      FROM TransactionInput
-      INNER JOIN BitcoinTransaction ON BitcoinTransaction.BitcoinTransactionId = TransactionInput.BitcoinTransactionId
-      INNER JOIN Block ON Block.BlockId = BitcoinTransaction.BlockId
-      WHERE Block.BlockchainFileId = BlockchainFile.BlockchainFileId 
-    ) AS TransactionInputCount,
-    ( SELECT COUNT(1) 
-      FROM TransactionOutput
-      INNER JOIN BitcoinTransaction ON BitcoinTransaction.BitcoinTransactionId = TransactionOutput.BitcoinTransactionId
-      INNER JOIN Block ON Block.BlockId = BitcoinTransaction.BlockId
-      WHERE Block.BlockchainFileId = BlockchainFile.BlockchainFileId 
-    ) AS TransactionOutputCount
-FROM BlockchainFile
-
 
 
 
@@ -402,32 +319,5 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
-CREATE TRIGGER update_Blockchain_status_trigger
-BEFORE INSERT ON BlockchainFile
-FOR EACH ROW 
-EXECUTE PROCEDURE update_Blockchain_status();
 
 -- ==========================================================================
--- STORE PROCEDURES --
- --Size of blocks for a given time period 
-
-
-/* Distribution of UTXOs.  This is h
-CREATE OR REPLACE FUNCTION utxo_distribution(DATE) RETURNS TABLE(num BIGINT[], value BIGINT[]) AS $$
-  BEGIN
-    RETURN QUERY WITH utxo AS (SELECT * FROM TransactionOutput WHERE InputHash IS NULL)
-    SELECT (num) AS num, (value) AS value
-    FROM (SELECT num, value::BIGINT FROM (SELECT 'satoshi' AS  range
-                                            ,1 AS rangenum
-                                            ,COUNT(1) AS num
-                                            ,COALESCE(SUM(value), 0) AS value
-                                      FROM t_utxo
-                                      WHERE value >= 0 AND value < 100
-                                      UNION
-                                      SELECT 'uBTC' AS range
-                                            ,2 AS rangenum
-                                            ,COUNT(1) AS num
-                                            ,COALESCE(SUM(value), 0) AS _value
-  
-
-
