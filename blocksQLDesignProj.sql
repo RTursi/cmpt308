@@ -23,16 +23,16 @@ drop table if exists address;
 
 create table block(
 blockID			int 	unique,
-height			int,
-bits			bigint,
-prevhash		int,		
-hash			int,		
-branchID		int,
-nonce			bigint,
-timestamUTC		date,
-timestamUnix	bigint,
-merkleroot		int,			
-transactioncount bigint,
+height			int 	not null,
+bits			bigint 	not null,
+prevhash		int 	not null,		
+hash			int 	not null,		
+branchID		int 	not null,
+nonce			bigint	not null,
+timestamUTC		date 	not null,
+timestamUnix	bigint 	not null,
+merkleroot		int 	not null, 			
+transactioncount bigint 	not null,
 primary key(blockID)
 );
 
@@ -40,8 +40,8 @@ primary key(blockID)
 
 create table branch(
 branchID		int 	unique,
-parentbranch	int,
-timestamUTC 	date,
+parentbranch	int 	not null,
+timestamUTC 	date 	not null,
 primary key(branchID)
 );
 
@@ -49,12 +49,12 @@ primary key(branchID)
 
 create table transaction(
 transactionID		bigint	unique, 		-- this is the database id
-blockID				int,
-size 				bigint,
-InputCount			bigint,
-OutputCount			bigint,
-TXID       			bigint,	--NEED TO CHANGE DATATYPE!!!!! -- THIS IS THE BLOCKCHAIN ID
-index 				bigint,			
+blockID				int 	not null,
+size 				bigint 	not null,
+InputCount			bigint 	not null,
+OutputCount			bigint 	not null,
+TXID       			bigint 	not null,	--NEED TO CHANGE DATATYPE!!!!! -- THIS IS THE BLOCKCHAIN ID
+index 				bigint 	not null,			
 primary key(transactionID)
 );
 
@@ -65,11 +65,11 @@ primary key(transactionID)
 
 create table transactionInput(
 transactionInputID			bigint  	unique, 
-transactionID				bigint,
-transactionOutputID 		bigint,
-value 						bigint,
-sequence					bigint,
-index 						bigint,
+transactionID				bigint  	not null,
+transactionOutputID 		bigint 		not null,
+value 						bigint 		not null,
+sequence					bigint		not null,
+index 						bigint 		not null,
 primary key(transactionInputID)
 );
 
@@ -79,11 +79,11 @@ primary key(transactionInputID)
 -- you need the adressTXsource to send/receive and buy/sell
 create table transactionOutput(
 transactionOutputID		bigint 	unique,
-transactionID			bigint,
-value 					bigint,
-toaddressType			int,
-toaddress 				int,
-index 					bigint,
+transactionID			bigint	not null,
+value 					bigint 	not null,
+toaddressType			int  	not null,
+toaddress 				int 	not null,
+index 					bigint 	not null,
 primary key(transactionOutputID)
 );
 
@@ -101,8 +101,8 @@ assetID		int,
 
 create table address(
 addressID		bigint 		unique,
-name			varchar(255),
-description		varchar(255),
+name			varchar(255) not null,
+description		varchar(255) not null,
 primary key(addressID)
 );
 
@@ -192,28 +192,6 @@ insert into transactionOutput(transactionOutputID, transactionID, value, toaddre
 
 insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
 	values(7, 7, 500000, 1, 112119, 0);
-
-
-
-
--- address  --
-
-
-insert into address(addressID, name, description)
-	values(1, 'PublicKey', 'addresstype_publickey');
-
-insert into address(addressID, name, description)
-	values(2, 'BitcoinTest', 'BitcoinTest');
-
-insert into address(addressID, name, description)
-	values(3, 'NAVcoinTest', 'addresstype_NAVcoin');
-
-insert into address(adressID, name, description)
-	values(4, 'PrivateKey', 'addresstype_privatekey');
-
-insert into address(addressID, name, description)
-	values(5, 'None', 'addresstype_None');
-
 
 
 -- ==========================================================================
