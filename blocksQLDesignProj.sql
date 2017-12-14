@@ -10,7 +10,7 @@
 -- https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_6):_The_Blockchain 
 -- https://blockgeeks.com/guides/what-is-hashing/
 -- ==========================================================================
-rop table if exists block;
+drop table if exists block;
 drop table if exists branch;
 drop table if exists transaction;
 drop table if exists transactionInput;
@@ -245,15 +245,17 @@ TO P_USER;
     -- SELECT * from view_transactionAggregated WHERE BitcoinTransactionId= 25
 CREATE VIEW View_TransactionAggregated AS 
 SELECT 
-    BitcoinTransactionId,
-    BlockId,
-    TransactionHash,
-    TransactionVersion,
-    TransactionLockTime,
-    TransactionInputCount,
-    TransactionOutputCount,
-    TotalOutputBtc,
-    TotalUnspentOutputBtc
+blockID	,		
+height	,	
+bits	,		
+prevhash,				
+hash	,				
+branchID,	
+nonce,			
+timestamUTC,		
+timestamUnix,	
+merkleroot,					
+transactioncount bigint,
 FROM (
     SELECT 
         BitcoinTransaction.BitcoinTransactionId,
