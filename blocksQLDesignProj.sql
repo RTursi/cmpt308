@@ -10,160 +10,211 @@
 -- https://en.bitcoin.it/wiki/Bitcoin_Core_0.11_(ch_6):_The_Blockchain 
 -- https://blockgeeks.com/guides/what-is-hashing/
 -- ==========================================================================
-
-drop table if exists Branch;
-drop table if exists Block;
-drop table if exists BitcoinTransaction;
-drop table if exists TransactionInput;
-drop table if exists TransactionInputSource;
-drop table if exists TransactionOutput;
+rop table if exists block;
+drop table if exists branch;
+drop table if exists transaction;
+drop table if exists transactionInput;
+drop table if exists transactionOutput;
 drop table if exists address;
 
 
-create table Branch(
-branchID        int,
-parentbranch    int,
-BlockTimeStamp  date,
+
+
+
+create table block(
+blockID			int 	unique,
+height			int,
+bits			bigint,
+prevhash		int,		
+hash			int,		
+branchID		int,
+nonce			bigint,
+timestamUTC		date,
+timestamUnix	bigint,
+merkleroot		int,			
+transactioncount bigint,
+primary key(blockID)
+);
+
+
+
+create table branch(
+branchID		int 	unique,
+parentbranch	int,
+timestamUTC 	date,
 primary key(branchID)
 );
 
--- TABLE: Block
--- Contains information about the Bitcoin blocks.
-CREATE TABLE Block (
-    BlockId                         BIGINT PRIMARY KEY              NOT NULL,
-    branchID                        INT,
-    BlockchainFileId                INT                             NOT NULL,
-    BitcoinTransactionId            BIGINT             NOT NULL,
-    BlockVersion                    INT                             NOT NULL,
-    BlockHash                       VARCHAR (200)                  NOT NULL,
-    PreviousBlockHash               VARCHAR (200)                  NOT NULL,
-    BlockTimestamp                  DATE                           NOT NULL,
-    TransactionHash                 VARCHAR (32)                    NOT NULL
+
+
+create table transaction(
+transactionID		bigint	unique, 		-- this is the database id
+blockID				int,
+size 				bigint,
+InputCount			bigint,
+OutputCount			bigint,
+TXID       			bigint,	--NEED TO CHANGE DATATYPE!!!!! -- THIS IS THE BLOCKCHAIN ID
+index 				bigint,			
+primary key(transactionID)
 );
 
+--transactionID> blockID, size, InputCount, OutputCount, TXID, index
+
+-- Transaction Input --
+-- id of the source of the transaction output
+
+create table transactionInput(
+transactionInputID			bigint  	unique, 
+transactionID				bigint,
+transactionOutputID 		bigint,
+value 						bigint,
+sequence					bigint,
+index 						bigint,
+primary key(transactionInputID)
+);
+
+--transactionInputID> transactionID, transactionInputID, value, sequence, index
+-- Transaction Output --
+-- id of the source of the transaction output 
+-- you need the adressTXsource to send/receive and buy/sell
+create table transactionOutput(
+transactionOutputID		bigint 	unique,
+transactionID			bigint,
+value 					bigint,
+toaddressType			int,
+toaddress 				int,
+index 					bigint,
+primary key(transactionOutputID)
+);
+
+--transactionOutputID> transactionID, value, toaddressType, toaddress, index
 /*
-create table Block_next(
-BlockId
-nextBlockId
-)
+-- Asset --
+-- this could be the transcript,records, bitcoin..?
+-- be attached to the block or transaction?
+create table asset(
+assetID		int,
+);*/
 
-*/
-
--- TABLE: BitcoinTransaction
--- Contains information about the Bitcoin transactions.
-CREATE TABLE BitcoinTransaction (
-    BitcoinTransactionId            BIGINT PRIMARY KEY              NOT NULL,
-    BlockId                         BIGINT                          NOT NULL,
-    TXID                            bigint                          NOT NULL,
-    TransactionHash                 VARCHAR (32)                    NOT NULL,
-    TransactionVersion              INT                             NOT NULL,
-    TransactionLockTime             INT                             NOT NULL
-);
-
-
--- TABLE: TransactionInput
--- Contains information about the Bitcoin transaction inputs.
-CREATE TABLE TransactionInput (
-    TransactionInputId              BIGINT PRIMARY KEY              NOT NULL,                         
-    SourceTransactionOutputId       BIGINT                          NULL,
-    
-    -- This column is provided as a way to optimize queries where a join is
-    -- required between an input and its corresponding output. 
-    TransactionOutputId             BIGINT                          NULL,
-    OutputHash                      TEXT                            NOT NULL,
-    OutputIndex                     INT                             NOT NULL,
-    index                           INT                             NOT NULL,
-    BitcoinTransactionId            BIGINT                          NOT NULL
-                         
-);
-
-
--- TABLE: TransactionOutput
--- Contains information about the Bitcoin transaction outputs.
-
-CREATE TABLE TransactionOutput (
-    TransactionOutputId             BIGINT PRIMARY KEY              NOT NULL,
-    BitcoinTransactionId            BIGINT                          NOT NULL,
-    OutputIndex                     INT                             NOT NULL,
-    OutputValueBtc                  NUMERIC(20,8)                   NOT NULL,
-    OutputScript                    VARCHAR (300)                   NOT NULL,
-    index                           INT                             NOT NULL,
-    InputHash                       VARCHAR(64),
-    InputIndex                      INT              
-);
-
-
+-- Address Maybe --
 
 
 create table address(
-addressID       bigint,
-name            varchar(255),
-description     varchar(255),
+addressID		bigint 		unique,
+name			varchar(255),
+description		varchar(255),
 primary key(addressID)
 );
 
--- ==========================================================================
--- iNSERT DATA IN THIS ISH
---
-insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
-    values(100, 1, 1, 25, 1, 'ab', 'aabc', '2017-07-19', 'cb');
+--addressID> name, description
 
-insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
-    values(101, 1, 2, 26, 1, 'abc', 'abcd', '2017-12-05', 'ca');
-insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
-    values(102, 1, 3, 27, 1, 'abd', 'abde', '2017-02-22', 'cd');
-insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
-    values(103, 1, 4, 28, 1, 'abe', 'aabef', '2017-05-12', 'ce');
-insert into Block(BlockId, branchID, BlockchainFileId, BitcoinTransactionId, BlockVersion, BlockHash, PreviousBlockHash,BlockTimestamp, TransactionHash)
-    values(104, 1, 5, 29, 1, 'abf', 'abg', '2017-07-19', 'cf');
+-- Loading Example Data --
+-- Do I create a hash number? or do i need to calculate one/Algorithm needs string,counter, nonce
+-- same thing for height or does it matter
 
+-- block --
+-- Do you want like actual hash, prevhash and merkle root values?
+insert into block(blockID, height, bits, prevhash, hash, branchID, nonce, timestamUTC, timestamUnix, merkleroot, transactioncount)
+	values(2, 0, 486604799, 00000, 00001, 1, 2083236893, '2017-10-30', 1231006505, 00001, 1);
 
-insert into BitcoinTransaction(BitcoinTransactionId, BlockId, TXID, TransactionHash, TransactionVersion, TransactionLockTime)
-    values(25, 100, 50, 'a', 1, 419382);
-insert into BitcoinTransaction(BitcoinTransactionId, BlockId, TXID, TransactionHash, TransactionVersion, TransactionLockTime)
-    values(26, 101, 51, 'ab', 1, 419382);
-insert into BitcoinTransaction(BitcoinTransactionId, BlockId, TXID, TransactionHash, TransactionVersion, TransactionLockTime)
-    values(27, 102, 52, 'abc', 1, 419382);
-insert into BitcoinTransaction(BitcoinTransactionId, BlockId, TXID, TransactionHash, TransactionVersion, TransactionLockTime)
-    values(28, 103, 53, 'abcd', 1, 419382);
-insert into BitcoinTransaction(BitcoinTransactionId, BlockId, TXID, TransactionHash, TransactionVersion, TransactionLockTime)
-    values(29, 104, 54, 'abcde', 1, 419382);
+insert into block(blockID, height, bits, prevhash, hash, branchID, nonce, timestamUTC, timestamUnix, merkleroot, transactioncount)
+	values(3, 1, 486604799, 00001, 00002, 1, 2083236893, '2009-01-04' , 1231006505, 00002, 1);
 
+-- branch --
 
+insert into branch(branchID, parentbranch, timestamUTC)
+	values(1, 0 , '2017-11-09');
+insert into branch(branchID, parentbranch, timestamUTC)
+	values(2, 1 , '2017-01-29');
 
---
-insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
-    values(335, 25, 100, 'zzzf', 0, 0, 25);
-insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
-    values(336, 26, 101, 'abcd', 0, 0, 26);
-insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
-    values(337, 27, 102, 'dcba', 0, 0, 27);
-insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
-    values(338, 28, 103, 'badd', 0, 0, 28);
-insert into TransactionInput(TransactionInputId,  SourceTransactionOutputId, TransactionOutputId, OutputHash, OutputIndex, index, BitcoinTransactionId)
-    values(339, 29, 104, 'badc', 0, 0, 29);
---
+-- transactions --
+-- Index of metadata of the known transaction
+-- Every transaction is linked to another transaction 
 
---
-insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
-    values(7, 25, 0, 5.6, 'Complete', 0, 'a', 0);
-insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
-    values(8, 26, 0, 14.2, 'Complete', 0, 'a', 0);
-insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
-    values(9, 27, 0, 201.3, 'Complete', 0, 'a', 0);
-insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
-    values(10, 28, 0, 32.0, 'Complete', 0, 'a', 0);
-insert into TransactionOutput(TransactionOutputId, BitcoinTransactionId, OutputIndex, OutputValueBtc, OutputScript, index, InputHash, InputIndex)
-    values(11, 29, 0, 8.2, 'Complete', 0, 'a', 0);
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43850, 43423, 134, 1, 1, 001, 0);
 
---
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43851, 43424, 134, 1, 1, 002, 0);
+
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43852, 43425, 135, 1, 1, 003, 0);
+
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43853, 43426, 135, 1, 1, 004, 0);
+
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43854, 43427, 134, 1, 1, 005, 0);
+
+insert into transaction(transactionID, blockID, size, InputCount, OutputCount, TXID, index)
+	values(43855, 43428, 135, 1, 1, 006, 0);
 
 
-insert into branch(branchID, parentbranch, BlockTimestamp)
-    values(12, 11, '2017-01-01');
+
+-- transaction inputs --
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(2, 2, 200 , 500000, 7025013096, 0);
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(3, 3, 300 , 500000, 7025013096, 0);
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(4, 4, 400 , 500000, 7025013096, 0);
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(5, 5, 500 , 500000, 7025013096, 0);
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(6, 6, 600 , 500000, 7025013096, 0);
+
+insert into transactionInput(transactionInputID, transactionID, transactionOutputID, value, sequence, index)
+	values(7, 7, 700 , 500000, 7025013096, 0);
+
+
+
+-- transactions outputs --
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(2, 2, 500000, 1, 112114, 0); -- CONVERT 112114 from the alphabet spells ALAN
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(3, 3, 500000, 1,112115 , 0);
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(4, 4, 500000, 1, 112116, 0);
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(5, 5, 500000, 1, 112117, 0);
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(6, 6, 500000, 1, 112118, 0);
+
+insert into transactionOutput(transactionOutputID, transactionID, value, toaddressType, toaddress, index)
+	values(7, 7, 500000, 1, 112119, 0);
+
+
+
+
+-- address  --
+
 
 insert into address(addressID, name, description)
-    values(12, 'Depression', 'So much time invested, so much to do still')
+	values(1, 'PublicKey', 'addresstype_publickey');
+
+insert into address(addressID, name, description)
+	values(2, 'BitcoinTest', 'BitcoinTest');
+
+insert into address(addressID, name, description)
+	values(3, 'NAVcoinTest', 'addresstype_NAVcoin');
+
+insert into address(adressID, name, description)
+	values(4, 'PrivateKey', 'addresstype_privatekey');
+
+insert into address(addressID, name, description)
+	values(5, 'None', 'addresstype_None');
+
+
 
 -- ==========================================================================
 -- SECURITY
